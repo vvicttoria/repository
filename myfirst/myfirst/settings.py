@@ -152,3 +152,8 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import sys
+if 'test' in sys.argv or 'test\_coverage' in sys.argv: #Covers regular testing and django-coverage
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+    DATABASES['default']['NAME'] = ':memory:'
