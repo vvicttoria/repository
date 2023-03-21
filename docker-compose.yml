@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  web:
+    container_name: web
+    build:
+      context: ./myfirst
+      dockerfile: Dockerfile
+    links:
+      - db:db
+    command: gunicorn myfirst.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./myfirst/:/usr/src/app/
+    expose:
+      - 8000
+    env_file:
+      - ./myfirst/env.prod
+    depends_on:
+      - db
+  db:
+    restart: always
+    container_name: postgres
+    image: postgres:14.3-bullseye
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./myfirst/env.prod.db
+
+  nginx:
+    restart: always
+    container_name: nginx-proxy
+    image: nginx-proxy:latest
+    build: 
+      context: ./Nginx/
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - web
+    volumes:
+      - ./Nginx/logs/:/var/log/nginx/opt/
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    container_name: redis
+
+volumes:
+  postgres_data:
