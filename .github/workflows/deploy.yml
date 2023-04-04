@@ -1,0 +1,31 @@
+name: Deploy to EC2 Instance
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.0
+      with:
+        ssh-private-key: ${{ secrets.AWS_EC2_KEY }}
+
+    - name: Connect to EC2 Instance
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.AWS_EC2_IP }}
+        username: ${{ secrets.AWS_EC2_LOGIN }}
+        key: ${{ secrets.AWS_EC2_KEY }}
+        port: ${{ secrets.AWS_EC2_PORT }}
+        script: |
+          cd /home/ubuntu/repository
+          git pull
+          docker-compose build
+          docker-compose up -d
